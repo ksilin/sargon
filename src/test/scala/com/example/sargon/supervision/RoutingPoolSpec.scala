@@ -1,3 +1,4 @@
+
 package com.example.sargon.supervision
 
 import akka.actor.{ Actor, ActorLogging, ActorRef, ActorSystem, Props }
@@ -30,9 +31,8 @@ class RoutingPoolSpec(_system: ActorSystem)
     // since the router is an actor, it can have its own supervisorStrategy
     // it is the property of the pool
     // the default strategy is escalate
-    val router: ActorRef =
-      // sincle we are handling props here, there is no way to name actors explicitly
-      context.actorOf(RoundRobinPool(5).props(workerProps), "router")
+    val router: ActorRef = // sincle we are handling props here, there is no way to name actors explicitly
+    context.actorOf(RoundRobinPool(5).props(workerProps), "router")
 
     override def receive: Receive = LoggingReceive {
       case w: Any => router ! w
@@ -41,21 +41,14 @@ class RoutingPoolSpec(_system: ActorSystem)
     override val supervisorStrategy = loggingRestartOneForOneStrategy(log)
   }
 
-  class RoutingSuperWithRestart(workerProps: Props)
-      extends Actor
-      with ActorLogging {
+  class RoutingSuperWithRestart(workerProps: Props) extends Actor with ActorLogging {
 
     // since the router is an actor, it can have its own supervisorStrategy
     // it is the property of the pool
     // the default strategy is escalate
-    val router: ActorRef =
-      // sincle we are handling props here, there is no way to name actors explicitly
-      context.actorOf(RoundRobinPool(
-                        5,
-                        supervisorStrategy =
-                          loggingRestartOneForOneStrategy(log)
-                      ).props(workerProps),
-                      "router")
+    val router: ActorRef = // sincle we are handling props here, there is no way to name actors explicitly
+    context.actorOf(RoundRobinPool(5, supervisorStrategy = loggingRestartOneForOneStrategy(log)).props(workerProps),
+                    "router")
 
     override def receive: Receive = LoggingReceive {
       case w: Any => router ! w

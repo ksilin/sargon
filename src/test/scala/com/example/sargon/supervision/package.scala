@@ -1,3 +1,4 @@
+
 package com.example.sargon
 
 import akka.actor.{ Actor, ActorLogging, OneForOneStrategy, Props }
@@ -58,14 +59,9 @@ package object supervision {
     case object GetWorker
   }
 
-  class SimpleWorkerSupervisor(workerProps: Props)
-      extends Actor
-      with ActorLogging {
+  class SimpleWorkerSupervisor(workerProps: Props) extends Actor with ActorLogging {
 
-    val wrkr = context.actorOf(
-      workerProps,
-      s"worker-${ Random.alphanumeric.take(3).mkString }"
-    )
+    val wrkr = context.actorOf(workerProps, s"worker-${ Random.alphanumeric.take(3).mkString }")
 
     override def receive: Receive = {
       case GetWorker => sender() ! wrkr
@@ -103,8 +99,7 @@ package object supervision {
         Escalate
     }
 
-  class StrategicWorkerSupervisor(workerProps: Props)
-      extends SimpleWorkerSupervisor(workerProps) {
+  class StrategicWorkerSupervisor(workerProps: Props) extends SimpleWorkerSupervisor(workerProps) {
     override val supervisorStrategy = customStrategy(log)
   }
 

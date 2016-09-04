@@ -1,13 +1,14 @@
+
 package com.example.sargon.supervision
 
-import akka.actor.{ActorRef, ActorSystem, PoisonPill, Props, Terminated}
+import akka.actor.{ ActorRef, ActorSystem, PoisonPill, Props, Terminated }
 import akka.event.Logging
 import akka.pattern.ask
-import akka.testkit.{ImplicitSender, TestKit}
+import akka.testkit.{ ImplicitSender, TestKit }
 import akka.util.Timeout
 import com.example.sargon.supervision.SimpleWorkerSupervisor.GetWorker
 import com.example.sargon.supervision.Worker._
-import org.scalatest.{FreeSpecLike, MustMatchers}
+import org.scalatest.{ FreeSpecLike, MustMatchers }
 import pprint._
 
 import scala.concurrent.Await
@@ -30,19 +31,16 @@ class SupervisionSpec(_system: ActorSystem)
     // separate from user messages.
     // This implies that supervision related events are not deterministically ordered relative to ordinary messages
 
-    val stratSuperProps: Props =
-      Props(new StrategicWorkerSupervisor(Props[Worker]))
-    val stratSuperProps2: Props =
-      Props(new StrategicWorkerSupervisor(Props[Worker2]))
+    val stratSuperProps: Props  = Props(new StrategicWorkerSupervisor(Props[Worker]))
+    val stratSuperProps2: Props = Props(new StrategicWorkerSupervisor(Props[Worker2]))
 
     "failing an restarting" in {
 
-      val simpleSuperProps: Props =
-        Props(new SimpleWorkerSupervisor(Props[Worker]))
-      val master = system.actorOf(simpleSuperProps, "supervisor")
+      val simpleSuperProps: Props = Props(new SimpleWorkerSupervisor(Props[Worker]))
+      val master                  = system.actorOf(simpleSuperProps, "supervisor")
 
       val getWorker = (master ? GetWorker).mapTo[ActorRef]
-      val w = Await.result(getWorker, 3 seconds)
+      val w         = Await.result(getWorker, 3 seconds)
       watch(w)
 
       master ! Fail
@@ -73,7 +71,7 @@ class SupervisionSpec(_system: ActorSystem)
       master ! EscalateThis
 
       val getWorker = (master ? GetWorker).mapTo[ActorRef]
-      val w = Await.result(getWorker, 3 seconds)
+      val w         = Await.result(getWorker, 3 seconds)
       watch(w)
 
       // since the StrategicWorkerSupervisor escalates, it will be restarted and restarts its children.
@@ -84,22 +82,22 @@ class SupervisionSpec(_system: ActorSystem)
     }
 
     "restarting worker" in {
-      val master = system.actorOf(stratSuperProps2, "stratSuperRestart" )
+      val master = system.actorOf(stratSuperProps2, "stratSuperRestart")
       master ! RestartMe
 
       val getWorker = (master ? GetWorker).mapTo[ActorRef]
-      val w = Await.result(getWorker, 3 seconds)
+      val w         = Await.result(getWorker, 3 seconds)
       watch(w)
       // will keep restarting on same msg until the timout of expectNoMsg kicks in or maxNrOfRetries is reached
       // http://stackoverflow.com/questions/13542921/akka-resending-the-breaking-message
-      val termMsg: Terminated = expectMsgType[Terminated]//(1 second)
+      val termMsg: Terminated = expectMsgType[Terminated] //(1 second)
     }
 
     "resuming worker" in {
-      val master = system.actorOf(stratSuperProps2, "stratSuperResume" )
+      val master = system.actorOf(stratSuperProps2, "stratSuperResume")
 
       val getWorker = (master ? GetWorker).mapTo[ActorRef]
-      val w = Await.result(getWorker, 3 seconds)
+      val w         = Await.result(getWorker, 3 seconds)
       watch(w)
 
       master ! ResumeMe
@@ -107,10 +105,10 @@ class SupervisionSpec(_system: ActorSystem)
     }
 
     "stopping worker will not produce a Terminated msg" in {
-      val master = system.actorOf(stratSuperProps2, "stratSuperStop" )
+      val master = system.actorOf(stratSuperProps2, "stratSuperStop")
 
       val getWorker = (master ? GetWorker).mapTo[ActorRef]
-      val w = Await.result(getWorker, 3 seconds)
+      val w         = Await.result(getWorker, 3 seconds)
       watch(w)
 
       master ! StopMe
@@ -118,10 +116,10 @@ class SupervisionSpec(_system: ActorSystem)
     }
 
     "stopping worker explicitly produce a Terminated msg" in {
-      val master = system.actorOf(stratSuperProps2, "stratSuperHammertime" )
+      val master = system.actorOf(stratSuperProps2, "stratSuperHammertime")
 
       val getWorker = (master ? GetWorker).mapTo[ActorRef]
-      val w = Await.result(getWorker, 3 seconds)
+      val w         = Await.result(getWorker, 3 seconds)
       watch(w)
 
       master ! Hammertime

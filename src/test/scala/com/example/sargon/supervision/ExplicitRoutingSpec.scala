@@ -1,19 +1,20 @@
+
 package com.example.sargon.supervision
 
 import akka.actor.Actor.Receive
-import akka.actor.{Actor, ActorLogging, ActorSystem, Props, Terminated}
-import akka.event.{Logging, LoggingReceive}
-import akka.routing.{ActorRefRoutee, RoundRobinRoutingLogic, Router}
-import akka.testkit.{ImplicitSender, TestKit}
+import akka.actor.{ Actor, ActorLogging, ActorSystem, Props, Terminated }
+import akka.event.{ Logging, LoggingReceive }
+import akka.routing.{ ActorRefRoutee, RoundRobinRoutingLogic, Router }
+import akka.testkit.{ ImplicitSender, TestKit }
 import akka.util.Timeout
 import com.example.sargon.supervision.Worker._
-import org.scalatest.{FreeSpecLike, MustMatchers}
+import org.scalatest.{ FreeSpecLike, MustMatchers }
 
 import scala.concurrent.duration._
 import scala.util.Random
 
 class ExplicitRoutingSpec(_system: ActorSystem)
-  extends TestKit(_system)
+    extends TestKit(_system)
     with ImplicitSender
     with MustMatchers
     with FreeSpecLike {
@@ -25,10 +26,10 @@ class ExplicitRoutingSpec(_system: ActorSystem)
 
   class RoutingSuperExplicit(workerProps: Props) extends Actor with ActorLogging {
 
-    // router is not an actor!
+    // this router is not an actor!
     var router: Router = {
       val routees = Vector.fill(5) {
-        val r = context.actorOf(workerProps, s"worker-${Random.alphanumeric.take(3).mkString}")
+        val r = context.actorOf(workerProps, s"worker-${ Random.alphanumeric.take(3).mkString }")
         context watch r // death watch
         ActorRefRoutee(r)
       }
@@ -38,7 +39,7 @@ class ExplicitRoutingSpec(_system: ActorSystem)
     override def receive: Receive = LoggingReceive {
       case Terminated(a) =>
         router = router.removeRoutee(a)
-        val r = context.actorOf(workerProps, s"worker-${Random.alphanumeric.take(3).mkString}")
+        val r = context.actorOf(workerProps, s"worker-${ Random.alphanumeric.take(3).mkString }")
         context watch r
         router = router.addRoutee(r)
       case w: Any => // let the workers sort everything out
@@ -48,13 +49,12 @@ class ExplicitRoutingSpec(_system: ActorSystem)
     override val supervisorStrategy = loggingRestartOneForOneStrategy(log)
   }
 
-
   "test routing and failure-resistance" - {
 
     "on worker failure, the entire router is restarted" in {
 
       val routerProps: Props = Props(new RoutingSuperExplicit(Props[Worker2]))
-      val r = system.actorOf(routerProps, "explicitRouter")
+      val r                  = system.actorOf(routerProps, "explicitRouter")
       r ! Fail
       // no policy defined - actor will restart until timeout
       expectNoMsg(100 millis)
@@ -63,6 +63,5 @@ class ExplicitRoutingSpec(_system: ActorSystem)
     // TODO - "how to log that the maxNumOfRetries has been depleted"
 
   }
-
 
 }
