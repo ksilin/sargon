@@ -20,9 +20,7 @@ import akka.actor.{ Actor, ActorLogging, ActorRef }
 
 // if supervisor has other plans for the data
 
-class DataFetchWorker(ids: Set[Int], supervisor: ActorRef, client: ActorRef)
-    extends Actor
-    with ActorLogging {
+class DataFetchWorker(ids: Set[Int], supervisor: ActorRef, client: ActorRef) extends Actor with ActorLogging {
 
   import context.dispatcher
 
@@ -37,7 +35,7 @@ class DataFetchWorker(ids: Set[Int], supervisor: ActorRef, client: ActorRef)
     log.debug(s"Start fetching: $ids")
     ids.foreach { id =>
       val msg = generateDataForId(id)
-      log.debug(s"Sending response chunk with id $id to ${ supervisor }")
+      log.debug(s"Sending response chunk with id $id to ${supervisor}")
       //          supervisor ! ChunkReady(msg)
       client ! DataChunk(msg)
     }

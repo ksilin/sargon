@@ -30,10 +30,7 @@ case class DataChunk(data: String)
 
 case class ChunkReady(data: String)
 
-class DataFetchSupervisor(entity: String,
-                          client: ActorRef,
-                          startId: Int,
-                          batchSize: Int)
+class DataFetchSupervisor(entity: String, client: ActorRef, startId: Int, batchSize: Int)
     extends Actor
     with ActorLogging {
   log.debug("Starting data fetch supervisor ...")

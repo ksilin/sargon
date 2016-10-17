@@ -1,6 +1,4 @@
-lazy val sargon = project
-  .in(file("."))
-  .enablePlugins(AutomateHeaderPlugin, GitVersioning)
+lazy val sargon = project.in(file(".")).enablePlugins(AutomateHeaderPlugin, GitVersioning)
 
 libraryDependencies ++= Vector(
   Library.akkaActor,
@@ -11,11 +9,10 @@ libraryDependencies ++= Vector(
   Library.logback,
   Library.scalaLogging,
   Library.pprint,
-
   Library.akkaStreamTestkit % "test",
-  Library.akkaHttpTestkit % "test",
-  Library.akkaTestkit % "test",
-  Library.scalaTest % "test"
+  Library.akkaHttpTestkit   % "test",
+  Library.akkaTestkit       % "test",
+  Library.scalaTest         % "test"
 )
 
 initialCommands := """|import com.example.sargon._
