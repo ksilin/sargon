@@ -1,4 +1,4 @@
---style defaultWithAlign
---spacesInImportCurlyBraces true
---danglingParentheses true
---maxColumn 120
+style = defaultWithAlign
+spaces.inImportCurlyBraces = true
+danglingParentheses = true
+maxColumn = 120
