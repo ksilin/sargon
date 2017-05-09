@@ -33,24 +33,21 @@ class BuffersAndTicksSpec extends FreeSpec with MustMatchers with LazyLogging wi
   case object Tick
 
   implicit val system = ActorSystem(this.getClass.getSimpleName)
-
   private val matSettings: ActorMaterializerSettings =
     ActorMaterializerSettings(system).withDebugLogging(true).withFuzzing(true)
 
   "buffers and ticks" - {
 
-    case object Tick
-
     val g = RunnableGraph.fromGraph(GraphDSL.create(Sink.foreach(println)) { implicit b => sink =>
       import GraphDSL.Implicits._
 
       // this is the asynchronous stage in this graph
-      val zipper = b.add(ZipWith[Tick.type, Int, Int]((tick, count) => count).async)
+      val zipper = b.add(ZipWith[Tick.type, Int, Int]((_, count) => count).async)
 
       Source.tick(initialDelay = 300.millisecond, interval = 300.millisecond, Tick) ~> zipper.in0
 
       Source
-        .tick(initialDelay = 100 millisecond, interval = 100 millisecond, "message!")
+        .tick(initialDelay = 100.millisecond, interval = 100.millisecond, "message!")
         .conflateWithSeed(seed = (_) => 1)((count, _) => count + 1) ~> zipper.in1
 
       zipper.out ~> sink
@@ -60,11 +57,11 @@ class BuffersAndTicksSpec extends FreeSpec with MustMatchers with LazyLogging wi
     "buffered" in {
       implicit val mat      = ActorMaterializer(matSettings.withInputBuffer(16, 16))
       val run: Future[Done] = g.run()
-      Await.result(run, 10 seconds)
+      Await.result(run, 10.seconds)
 
       // 11111111111111115111111117111111117 // 17, not 7
       // fetches a full buffer, then accumulates for the last value of 17
-      // nopt getting it still, why is there a 5 at first?
+      // not getting it still, why is there a 5 at first?
     }
 
     "unbuffered" in {
@@ -87,38 +84,42 @@ class BuffersAndTicksSpec extends FreeSpec with MustMatchers with LazyLogging wi
       import Math._
 
       val statsFlow = Flow[Double]
+      // .groupedWithin(100, 100.milli)
       // (seed: Out ⇒ S)(aggregate: (S, Out) ⇒ S)
-      .conflateWithSeed { d: Double =>
-        Seq(d)
-      } { (elem, acc) =>
-        println(s"adding element $elem to sequence ${acc}") // never gets printed
-        elem :+ acc
-      }.map { s: Seq[Double] =>
-        val μ  = s.sum / s.size
-        val se = s.map(x => pow(x - μ, 2))
-        val σ  = sqrt(se.sum / se.size)
-        (σ, μ, s.size)
-      }
+        .conflateWithSeed { d: Double =>
+          Seq(d)
+        } { (elem, acc) =>
+          println(s"adding element $elem to sequence $acc") // never gets printed
+          elem :+ acc
+        }
+        .map { s: Seq[Double] =>
+          Thread.sleep(300)
+          println(s"current size: ${s.size}")
+          val μ  = s.sum / s.size
+          val se = s.map(x => pow(x - μ, 2))
+          val σ  = sqrt(se.sum / se.size)
+          (σ, μ, s.size)
+        }
 
-      val s: Source[Double, Cancellable] = Source.tick(1 milli, 1 milli, "tick").map(_ => Random.nextDouble())
+      val s: Source[Double, Cancellable] = Source.tick(1.milli, 1.milli, "tick").map(_ => Random.nextDouble())
 
       // TODO - why am I getting single element stats?
       // runWith vs foreach with function dont make a difference
-      val eventualDone: Future[Done] = s.via(statsFlow).runWith(Sink.foreach(e => { Thread.sleep(10); println(e) }))//foreach(e => { Thread.sleep(10); println(e) })
-      Await.result(eventualDone, 1 second)
+      val eventualDone
+        : Future[Done] = s.via(statsFlow).runWith(Sink.foreach(e => { Thread.sleep(10); println(e) })) //foreach(e => { Thread.sleep(10); println(e) })
+      Await.result(eventualDone, 1.second)
     }
-
 
     // producer too slow
     "expand" in {
       val lastFlow = Flow[Double]
         .expand(Iterator.continually(_))
 
-      val s: Source[Double, Cancellable] = Source.tick(1 milli, 1 milli, "tick").map(_ => Random.nextDouble())
+      val s: Source[Double, Cancellable] = Source.tick(1.milli, 1.milli, "tick").map(_ => Random.nextDouble())
 
       // TODO - why am I getting a single result repeatedly?
       val eventualDone: Future[Done] = s.via(lastFlow).runForeach(e => { Thread.sleep(10); println(e) })
-      Await.result(eventualDone, 1 second)
+      Await.result(eventualDone, 1.second)
     }
 
     "expand 2 " in {

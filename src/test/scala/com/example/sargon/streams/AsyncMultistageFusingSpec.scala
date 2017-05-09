@@ -27,7 +27,7 @@ import org.scalatest.{ FreeSpec, MustMatchers }
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 
-class AsyncMultistageSpec extends FreeSpec with MustMatchers with LazyLogging with Timed {
+class AsyncMultistageFusingSpec extends FreeSpec with MustMatchers with LazyLogging with Timed {
 
   implicit val system = ActorSystem(this.getClass.getSimpleName)
   import system.dispatcher // ec
@@ -70,7 +70,7 @@ class AsyncMultistageSpec extends FreeSpec with MustMatchers with LazyLogging wi
     "map" in {
       timed("map") {
         val done: Future[Done] = Source(numbers).map(workFun).runForeach(e => { println(s"done $e") })
-        Await.result(done, 10 seconds)
+        Await.result(done, 10.seconds)
       }
     } // 5564 ms
 
@@ -81,7 +81,7 @@ class AsyncMultistageSpec extends FreeSpec with MustMatchers with LazyLogging wi
           .runForeach(e => {
             println(s"done $e")
           })
-        Await.result(done, 10 seconds)
+        Await.result(done, 10.seconds)
       } // 1857 ms
     }
 
