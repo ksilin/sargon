@@ -18,14 +18,14 @@ package com.example.sargon.streams
 
 import akka.actor.ActorSystem
 import akka.stream._
-import akka.stream.scaladsl.{Balance, Flow, GraphDSL, Merge, RunnableGraph, Sink, Source}
-import akka.{Done, NotUsed}
+import akka.stream.scaladsl.{ Balance, Flow, GraphDSL, Merge, RunnableGraph, Sink, Source }
+import akka.{ Done, NotUsed }
 import com.typesafe.scalalogging.LazyLogging
-import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalatest.{ FreeSpec, MustMatchers }
 
 import scala.collection.immutable
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.util.Random
 
 class WorkerPoolSpec extends FreeSpec with MustMatchers with LazyLogging {

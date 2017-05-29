@@ -42,26 +42,26 @@ package object supervision {
     var receivedMsg = 0
 
     def logAndCount(msg: Any): Unit = {
-      log.info(s"${ self.path.name } received Fail")
+      log.info(s"${self.path.name} received Fail")
       receivedMsg += 1
     }
 
     override def receive: Receive = LoggingReceive {
       case Fail =>
         logAndCount(Fail)
-        throw new Exception(s"bam! in ${ self.path.name }")
+        throw new Exception(s"bam! in ${self.path.name}")
       case EscalateThis =>
         logAndCount(EscalateThis)
-        throw new EscalateThisEx(s"escalator to heaven in ${ self.path.name }")
+        throw new EscalateThisEx(s"escalator to heaven in ${self.path.name}")
       case RestartMe =>
         logAndCount(RestartMe)
-        throw new RestartMeEx(s"and try again in ${ self.path.name }")
+        throw new RestartMeEx(s"and try again in ${self.path.name}")
       case ResumeMe =>
         logAndCount(ResumeMe)
-        throw new ResumeMeEx(s"as if nothing happened in ${ self.path.name }")
+        throw new ResumeMeEx(s"as if nothing happened in ${self.path.name}")
       case StopMe =>
         logAndCount(StopMe)
-        throw new StopMeEx(s"hammertime! in ${ self.path.name }")
+        throw new StopMeEx(s"hammertime! in ${self.path.name}")
       case Hammertime =>
         logAndCount(Hammertime)
         context.stop(self)
@@ -76,7 +76,7 @@ package object supervision {
 
   class SimpleWorkerSupervisor(workerProps: Props) extends Actor with ActorLogging {
 
-    val wrkr = context.actorOf(workerProps, s"worker-${ Random.alphanumeric.take(3).mkString }")
+    val wrkr = context.actorOf(workerProps, s"worker-${Random.alphanumeric.take(3).mkString}")
 
     override def receive: Receive = {
       case GetWorker => sender() ! wrkr

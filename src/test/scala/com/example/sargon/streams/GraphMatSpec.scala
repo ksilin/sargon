@@ -18,14 +18,14 @@ package com.example.sargon.streams
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Flow, Keep, Source}
-import akka.testkit.{ImplicitSender, TestKit}
-import akka.{Done, NotUsed}
+import akka.stream.scaladsl.{ Flow, Keep, Source }
+import akka.testkit.{ ImplicitSender, TestKit }
+import akka.{ Done, NotUsed }
 import com.typesafe.scalalogging.LazyLogging
-import org.scalatest.{FreeSpecLike, MustMatchers}
+import org.scalatest.{ FreeSpecLike, MustMatchers }
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 
 // http://doc.akka.io/docs/akka/current/scala/stream/stream-graphs.html#Accessing_the_materialized_value_inside_the_Graph
 // http://stackoverflow.com/questions/35516519/how-to-test-an-akka-stream-closed-shape-runnable-graph-with-an-encapsulated-sour
@@ -64,11 +64,12 @@ class GraphMatSpec(_system: ActorSystem)
       Await.result(done, 1 second)
     }
 
-   "viaMat" in {
+    "viaMat" in {
       // viaMat[T, Mat2, Mat3](flow: Graph[FlowShape[Out, T], Mat2])(combine: (Mat, Mat2) ⇒ Mat3): Source[T, Mat3]
       val done: Future[Done] = Source(1 to 10).viaMat(doubleFlow)(Keep.right).runForeach(justPrint)
-     // Keep.right is not really used here
-     val done2: Future[Done] = Source(1 to 10).viaMat(doubleFlow)((a: NotUsed, b: NotUsed) => Unit).runForeach(justPrint)
+      // Keep.right is not really used here
+      val done2: Future[Done] =
+        Source(1 to 10).viaMat(doubleFlow)((a: NotUsed, b: NotUsed) => Unit).runForeach(justPrint)
       Await.result(done2, 1 second)
     }
 

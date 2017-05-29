@@ -42,7 +42,7 @@ class HelloAkkaSpec(_system: ActorSystem)
       val greeter = TestActorRef(Props[Greeter])
       greeter ! WhoToGreet("testkit")
       greeter.underlyingActor.asInstanceOf[Greeter].greeting should be(
-          "hello, testkit"
+        "hello, testkit"
       )
     }
 

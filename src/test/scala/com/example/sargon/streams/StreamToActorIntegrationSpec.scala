@@ -18,15 +18,15 @@ package com.example.sargon.streams
 
 import akka.Done
 import akka.actor.Status.Success
-import akka.actor.{ActorRef, ActorSystem, PoisonPill}
+import akka.actor.{ ActorRef, ActorSystem, PoisonPill }
 import akka.pattern.pipe
-import akka.stream.scaladsl.{Sink, Source}
-import akka.stream.{ActorMaterializer, OverflowStrategy}
-import akka.testkit.{ImplicitSender, TestKit, TestProbe}
-import org.scalatest.{FreeSpecLike, MustMatchers}
+import akka.stream.scaladsl.{ Sink, Source }
+import akka.stream.{ ActorMaterializer, OverflowStrategy }
+import akka.testkit.{ ImplicitSender, TestKit, TestProbe }
+import org.scalatest.{ FreeSpecLike, MustMatchers }
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 
 // http://doc.akka.io/docs/akka/current/scala/stream/stream-testkit.html#TestKit
 //http://doc.akka.io/docs/akka/current/scala/stream/stream-integrations.html#integrating-with-actors

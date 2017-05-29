@@ -44,7 +44,7 @@ class ExplicitRoutingSpec(_system: ActorSystem)
     // this router is not an actor!
     var router: Router = {
       val routees = Vector.fill(5) {
-        val r = context.actorOf(workerProps, s"worker-${ Random.alphanumeric.take(3).mkString }")
+        val r = context.actorOf(workerProps, s"worker-${Random.alphanumeric.take(3).mkString}")
         context watch r // death watch
         ActorRefRoutee(r)
       }
@@ -54,7 +54,7 @@ class ExplicitRoutingSpec(_system: ActorSystem)
     override def receive: Receive = LoggingReceive {
       case Terminated(a) =>
         router = router.removeRoutee(a)
-        val r = context.actorOf(workerProps, s"worker-${ Random.alphanumeric.take(3).mkString }")
+        val r = context.actorOf(workerProps, s"worker-${Random.alphanumeric.take(3).mkString}")
         context watch r
         router = router.addRoutee(r)
       case w: Any => // let the workers sort everything out

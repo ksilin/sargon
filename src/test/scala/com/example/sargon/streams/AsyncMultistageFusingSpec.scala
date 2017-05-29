@@ -43,7 +43,7 @@ class AsyncMultistageFusingSpec extends FreeSpec with MustMatchers with LazyLogg
 
   val workFutureFun: (Int) => Future[Int] = e => {
     Future {
-      println(s"start wf $e" )
+      println(s"start wf $e")
       Thread.sleep(e * 100)
       e
     }

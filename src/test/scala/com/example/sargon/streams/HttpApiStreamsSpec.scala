@@ -53,7 +53,7 @@ class HttpApiStreamsSpec extends FreeSpec with ScalatestRouteTest with MustMatch
         } ~
         path("concatFuture" / Segment) { req =>
           complete { processRequestStringConcat(req) }
-        } ~ path("dandy") {complete(FineAndDandy.toString)} // needs marshaller
+        } ~ path("dandy") { complete(FineAndDandy.toString) } // needs marshaller
 
     }
   }

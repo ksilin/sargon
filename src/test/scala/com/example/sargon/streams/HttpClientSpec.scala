@@ -19,40 +19,37 @@ package com.example.sargon.streams
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.HostConnectionPool
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Keep, RunnableGraph, Sink, Source}
+import akka.stream.scaladsl.{ Keep, RunnableGraph, Sink, Source }
 import akka.testkit.TestKit
 import com.example.sargon.StopSystemAfterAll
-import org.scalatest.{FreeSpecLike, MustMatchers}
+import org.scalatest.{ FreeSpecLike, MustMatchers }
 
 import scala.concurrent.Future
 import scala.util.Try
 
-class HttpClientSpec(_system: ActorSystem) extends TestKit(_system) with FreeSpecLike with MustMatchers with StopSystemAfterAll {
+class HttpClientSpec(_system: ActorSystem)
+    extends TestKit(_system)
+    with FreeSpecLike
+    with MustMatchers
+    with StopSystemAfterAll {
 
   def this() = this(ActorSystem("httpclientspec"))
 
   implicit val mat = ActorMaterializer()
   import system.dispatcher
 
-
-  "pushing requests through streams" - {
-
-  }
+  "pushing requests through streams" - {}
 
   // accessing the mat value
   val poolClientFlow = Http().cachedHostConnectionPool[Int]("akka.io")
 
-  val graph: RunnableGraph[(HostConnectionPool, Future[(Try[HttpResponse], Int)])]  =
-    Source.single(HttpRequest(uri = "/") -> 42)
-      .viaMat(poolClientFlow)(Keep.right)
-      .toMat(Sink.head)(Keep.both)
+  val graph: RunnableGraph[(HostConnectionPool, Future[(Try[HttpResponse], Int)])] =
+    Source.single(HttpRequest(uri = "/") -> 42).viaMat(poolClientFlow)(Keep.right).toMat(Sink.head)(Keep.both)
 
   val (pool: HostConnectionPool, fut: Future[(Try[HttpResponse], Int)]) = graph.run()
 
   pool.shutdown()
-
-
 
 }
