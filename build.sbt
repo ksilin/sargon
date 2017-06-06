@@ -1,4 +1,4 @@
-lazy val sargon = project.in(file(".")).enablePlugins(AutomateHeaderPlugin, GitVersioning)
+lazy val sargon = project.in(file(".")).enablePlugins(GitVersioning)
 
 libraryDependencies ++= Vector(
   Library.akkaActor,

@@ -1,19 +1,3 @@
-/*
- * Copyright 2016 ksilin
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.sargon.streams
 
 import akka.Done
@@ -43,14 +27,18 @@ class StreamToActorIntegrationSpec(_system: ActorSystem)
 
   "exchanging data between actors and streams" - {
 
-    "piping to a sink actor" in {
+    "piping to a sink actor ref" in {
       val sourceUnderTest = Source(1 to 4).grouped(2)
 
-      val probe = TestProbe()
+      // TestProve extends TestKit, has testActor
+      val probe: TestProbe = TestProbe()
 
       sourceUnderTest.grouped(2).runWith(Sink.head).pipeTo(probe.ref)
       probe.expectMsg(100.millis, Seq(Seq(1, 2), Seq(3, 4)))
     }
+
+
+    // TODO - Success does not stop stream gracefully
 
     // mapMaterializedValue
     "creating an actor receiving msgs to stream" in {
@@ -61,23 +49,15 @@ class StreamToActorIntegrationSpec(_system: ActorSystem)
       // if there is demand from downstream, otherwise they will be buffered until request for demand is received.
       val source: Source[Int, ActorRef] = Source.actorRef[Int](0, OverflowStrategy.fail)
 
-      // in case you have some futures providing individual values, you can combine them in a method:
-      def run(actor: ActorRef): Unit = {
-        import system.dispatcher
-        Future { Thread.sleep(100); actor ! 1 }
-        Future { Thread.sleep(200); actor ! 2 }
-        Future { Thread.sleep(300); actor ! 3 }
-      }
-
       val done: Future[Done] = source
-        .mapMaterializedValue(sourceRef => {
-//          run(sourceRef)
-          system.scheduler.schedule(0 millis, 100 millis, sourceRef, 1)
-          // sending Success to successfully complete the stream - does not work - it is accepted as a simple msg
-          system.scheduler.scheduleOnce(500 millis, sourceRef, Success)
+        .mapMaterializedValue((sourceRef: ActorRef) => {
+          system.scheduler.schedule(0.millis, 100.millis, sourceRef, 1)
+
+          // sending Success to successfully complete the stream - does not work - accepted as simple msg and printed
+          system.scheduler.scheduleOnce(500.millis, sourceRef, Success)
 
           // a PoisonPill works as Success however
-          system.scheduler.scheduleOnce(750 millis, sourceRef, PoisonPill)
+          system.scheduler.scheduleOnce(750.millis, sourceRef, PoisonPill)
           // dispatching a msg directly in mapMatVal result in element drop
           // Dropping element because there is no downstream demand: [99]
           sourceRef ! 99
@@ -85,7 +65,33 @@ class StreamToActorIntegrationSpec(_system: ActorSystem)
         .runForeach({ e: Any =>
           println(s"done $e")
         })
-      Await.result(done, 1 second)
+      Await.result(done, 1.second)
     }
+
+    "mapping the materialized value 2" in {
+      val source: Source[Int, ActorRef] = Source.actorRef[Int](0, OverflowStrategy.fail)
+
+      // in case you have some futures providing individual values, you can combine them in a method:
+      def run(actor: ActorRef): Future[Unit] = {
+        Future { Thread.sleep(100); actor ! 1 }
+        Future { Thread.sleep(200); actor ! 2 }
+        Future { Thread.sleep(300); actor ! 3 }
+        // akka.stream.impl.ActorRefSourceActor - received AutoReceiveMessage
+        // Envelope(PoisonPill,Actor[akka://streamToActorIntegrationSpec/system/testActor-1#1008056392])
+        Future { Thread.sleep(400); actor ! PoisonPill }
+      }
+
+      val done: Future[Done] = source
+        .mapMaterializedValue((sourceRef: ActorRef) => {
+          run(sourceRef)
+        })
+        .runForeach({ e: Any =>
+          println(s"done $e")
+        })
+      Await.result(done, 1.second)
+    }
+
+    // TODO - how fast can I process with a buffer and a fast parallel consumer
+
   }
 }

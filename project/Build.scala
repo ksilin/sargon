@@ -1,6 +1,4 @@
 import com.typesafe.sbt.GitPlugin
-import de.heikoseeberger.sbtheader.HeaderPlugin
-import de.heikoseeberger.sbtheader.license._
 import org.scalafmt.sbt.ScalaFmtPlugin
 import sbt._
 import sbt.plugins.JvmPlugin
@@ -8,7 +6,7 @@ import sbt.Keys._
 
 object Build extends AutoPlugin {
 
-  override def requires = JvmPlugin && HeaderPlugin && GitPlugin && ScalaFmtPlugin
+  override def requires = JvmPlugin && GitPlugin && ScalaFmtPlugin
 
   override def trigger = allRequirements
 
@@ -17,8 +15,6 @@ object Build extends AutoPlugin {
     Vector(
       // Core settings
       organization := "com.example", 
-      licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
-      mappings.in(Compile, packageBin) += baseDirectory.in(ThisBuild).value / "LICENSE" -> "LICENSE",
       scalaVersion := Version.Scala,
       crossScalaVersions := Vector(scalaVersion.value),
       scalacOptions ++= Vector(
@@ -33,11 +29,7 @@ object Build extends AutoPlugin {
 
       // scalafmt settings
       ScalaFmtPlugin.autoImport.scalafmtConfig := Some(baseDirectory.in(ThisBuild).value / ".scalafmt"),
-
       // Git settings
-      GitPlugin.autoImport.git.useGitDescribe := true,
-
-      // Header settings
-      HeaderPlugin.autoImport.headers := Map("scala" -> Apache2_0("2016", "ksilin"))
+      GitPlugin.autoImport.git.useGitDescribe := true
     )
 }

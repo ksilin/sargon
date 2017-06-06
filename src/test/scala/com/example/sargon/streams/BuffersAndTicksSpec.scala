@@ -1,43 +1,27 @@
-/*
- * Copyright 2016 ksilin
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.sargon.streams
 
-import akka.{Done, NotUsed}
-import akka.actor.{Actor, ActorRef, ActorSystem, Cancellable, Props}
-import akka.stream.actor.ActorPublisher
-import akka.stream.{ActorMaterializer, ActorMaterializerSettings, ClosedShape, OverflowStrategy}
-import akka.stream.scaladsl.{Flow, GraphDSL, RunnableGraph, Sink, Source, ZipWith}
+import akka.{ Done, NotUsed }
+import akka.actor.{ Actor, ActorRef, ActorSystem, Cancellable, PoisonPill, Props }
+import akka.stream.{ ActorMaterializer, ActorMaterializerSettings, ClosedShape, OverflowStrategy }
+import akka.stream.scaladsl.{ Flow, GraphDSL, RunnableGraph, Sink, Source, ZipWith }
 import com.example.sargon.Timed
 import com.typesafe.scalalogging.LazyLogging
-import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalatest.{ FreeSpec, MustMatchers }
 
 import scala.collection.mutable
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 import scala.util.Random
 
 class WeatherForwarder extends Actor {
   override def receive: Receive = {
-    case x => println(x)
+    case x =>
+      println(x)
       sender() ! 0.21
   }
 }
 object WeatherForwarder {
-  def props : Props = Props[WeatherForwarder]
+  def props: Props = Props[WeatherForwarder]
 }
 
 class BuffersAndTicksSpec extends FreeSpec with MustMatchers with LazyLogging with Timed {
@@ -47,6 +31,7 @@ class BuffersAndTicksSpec extends FreeSpec with MustMatchers with LazyLogging wi
   implicit val system = ActorSystem(this.getClass.getSimpleName)
   private val matSettings: ActorMaterializerSettings =
     ActorMaterializerSettings(system).withDebugLogging(true).withFuzzing(true)
+  implicit val ec = system.dispatcher
 
   "buffers and ticks" - {
 
@@ -149,61 +134,6 @@ class BuffersAndTicksSpec extends FreeSpec with MustMatchers with LazyLogging wi
       val done: Future[Done] = s.runForeach(println)
       Await.result(done, 1 second)
     }
-
-    "source without backpressure - actor" in {
-      val source: Source[Double, ActorRef] =
-        Source.actorRef[String](0, OverflowStrategy.fail).map(_ => Random.nextDouble())
-
-      val sink: Sink[Double, Future[Done]] = Sink.foreach(println)
-
-//      val actorRef: ActorRef = source.to(sink).run()
-
-      val actorRef: ActorRef = Flow[Double].to(sink).runWith(source)
-
-      system.scheduler.schedule(0.micro, 1.milli, actorRef, "tick")(system.dispatcher)
-
-      // to finish gracefully, send Success to actor
-      Thread.sleep(1000)
-      println("done")
-    }
-
-    "source without backpressure fails on overflow" in {
-      val source: Source[Double, ActorRef] =
-        Source.actorRef[String](0, OverflowStrategy.fail).map(_ => Random.nextDouble())
-
-//      var processed: Int = 0
-      var q = mutable.Queue[Double]()
-
-      val sink: Sink[Double, Future[Done]] = Sink.foreach { e =>
-//        Thread.sleep(5)
-//        processed = processed + 1
-        q += e
-        println(e)
-      }
-
-      val actorRef: ActorRef = source.to(sink).run()
-      system.scheduler.schedule(1.milli, 1.milli, actorRef, "tick")(system.dispatcher)
-
-      // to finish gracefully, send Success to actor
-      Thread.sleep(1000)
-      println(s"done: ${q.size}")
-    }
-
-    "actor logs receival" in {
-
-//      val actorRef = system actorOf WeatherForwarder.props
-      val source: Source[Double, ActorRef] = Source.actorPublisher(WeatherForwarder.props)//ActorPublisher[Double](actorRef))
-      val sink: Sink[Double, Future[Done]] = Sink.foreach(println)
-
-      val actorRef: ActorRef = source.to(sink).run()
-      system.scheduler.schedule(1.milli, 1.milli, actorRef, "tick")(system.dispatcher)
-
-      // to finish gracefully, send Success to actor
-      Thread.sleep(1000)
-    }
-
-    // use explicit actor to log on receive
-
   }
 
 }
